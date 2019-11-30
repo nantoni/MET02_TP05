@@ -1,6 +1,0 @@
-composer.phar
-/vendor/
-.idea/
-/coverage/
-/logs/*
-!/logs/README.md
