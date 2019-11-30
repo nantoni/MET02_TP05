@@ -1,73 +1,51 @@
 <?php
-declare(strict_types=1);
+require '../../vendor/autoload.php';
+$app = new \Slim\App;
 
-use App\Application\Handlers\HttpErrorHandler;
-use App\Application\Handlers\ShutdownHandler;
-use App\Application\ResponseEmitter\ResponseEmitter;
-use DI\ContainerBuilder;
-use Slim\Factory\AppFactory;
-use Slim\Factory\ServerRequestCreatorFactory;
+$app->get('/hello/{name}',
+function ($resquest,$response,$args) {
+	return $response->write("{\"nom\":\"$args[name]\"}");
+});
 
-require __DIR__ . '/../vendor/autoload.php';
+$app->get('/client/{id}', 'getClient');
+$app->post('/client', 'addClient');
+$app->put('/client/{id}', 'updateClient');
+$app->delete('/client/{id}', 'deleteClient');
 
-// Instantiate PHP-DI ContainerBuilder
-$containerBuilder = new ContainerBuilder();
 
-if (false) { // Should be set to true in production
-	$containerBuilder->enableCompilation(__DIR__ . '/../var/cache');
+
+function getClient($request,$response,$args) {
+	$id = $args['id'];
+	// RECHERCHE
+	// ...
+	return $response->write (json_encode($client));
 }
 
-// Set up settings
-$settings = require __DIR__ . '/../app/settings.php';
-$settings($containerBuilder);
+function addLivre($request,$response,$args) {
+	$body = $request->getParsedBody();
+	// Parse le body
+	$nom = $body['nom']; // Data du formulaire
+	// AJOUT
+	// ...
+	return $response->write ("");
+}
 
-// Set up dependencies
-$dependencies = require __DIR__ . '/../app/dependencies.php';
-$dependencies($containerBuilder);
+function updateClient($request,$response,$args) {
+	$id = $args['id'];
+	$body = $request->getParsedBody();
+	$nom = $body['nom'];
+	// Mise a jour
+	// ...
+	return $response->write ("");
+}
 
-// Set up repositories
-$repositories = require __DIR__ . '/../app/repositories.php';
-$repositories($containerBuilder);
 
-// Build PHP-DI Container instance
-$container = $containerBuilder->build();
+function deleteClient($request,$response,$args) {
+	$id = $args['id'];
+	// Suppression
+	// ...
+	return $response->write ("");
+}
 
-// Instantiate the app
-AppFactory::setContainer($container);
-$app = AppFactory::create();
-$callableResolver = $app->getCallableResolver();
-
-// Register middleware
-$middleware = require __DIR__ . '/../app/middleware.php';
-$middleware($app);
-
-// Register routes
-$routes = require __DIR__ . '/../app/routes.php';
-$routes($app);
-
-/** @var bool $displayErrorDetails */
-$displayErrorDetails = $container->get('settings')['displayErrorDetails'];
-
-// Create Request object from globals
-$serverRequestCreator = ServerRequestCreatorFactory::create();
-$request = $serverRequestCreator->createServerRequestFromGlobals();
-
-// Create Error Handler
-$responseFactory = $app->getResponseFactory();
-$errorHandler = new HttpErrorHandler($callableResolver, $responseFactory);
-
-// Create Shutdown Handler
-$shutdownHandler = new ShutdownHandler($request, $errorHandler, $displayErrorDetails);
-register_shutdown_function($shutdownHandler);
-
-// Add Routing Middleware
-$app->addRoutingMiddleware();
-
-// Add Error Middleware
-$errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, false, false);
-$errorMiddleware->setDefaultErrorHandler($errorHandler);
-
-// Run App & Emit Response
-$response = $app->handle($request);
-$responseEmitter = new ResponseEmitter();
-$responseEmitter->emit($response);
+// Start app
+$app->run();
