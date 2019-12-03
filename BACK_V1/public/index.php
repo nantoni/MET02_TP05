@@ -5,9 +5,9 @@ use \Firebase\JWT\JWT;
 
 $app = new \Slim\App;
 
-const JWT_SECRET = "myKey1234567";
+const JWT_SECRET = "BrigitteMacronIsASolidFiveOutOfSeven";
 
-$jwt = new \Slim\Middleware\JwtAuthentication([
+$jwt = new \Tuupola\Middleware\JwtAuthentication([
 	"path" => "/api",
 	"secure" => false,
 	"secret" => JWT_SECRET,
@@ -24,16 +24,26 @@ $app->add($jwt);
 
 // ROUTES
 // client 
-$app->get('/client/{id}', 'getClient');
-$app->post('/client', 'addClient');
-$app->put('/client/{id}', 'updateClient');
-$app->delete('/client/{id}', 'deleteClient');
+$app->get('/api/client/{id}', 'getClient');
+$app->post('/api/client', 'addClient');
+$app->put('/api/client/{id}', 'updateClient');
+$app->delete('/api/client/{id}', 'deleteClient');
 // authentication
 $app->post('/signin', 'signin');
 // produit
-$app->get('/produits', 'getProduits');
-$app->get('/produit/{id}', 'getProduit');
+$app->get('/api/produits', 'getProduits');
+$app->get('/api/produit/{id}', 'getProduit');
 
+// auth
+$app->get('/api/authen', authen);
+
+
+
+function authen($request, $response, $args)
+{
+	$token = $request->getAttribute("decoded_token_data");
+	return $response->withHeader("Content-Type", "application/json")->withJson($token);
+}
 
 function hello($resquest, $response, $args)
 {
@@ -48,6 +58,11 @@ function getClient($request, $response, $args)
 	return $response->write(json_encode('{"a":"b"}'));
 
 	// return $response->write (json_encode($client));
+}
+
+function addClient($request, $response, $args)
+{
+	
 }
 
 function addLivre($request, $response, $args)
@@ -80,7 +95,19 @@ function deleteClient($request, $response, $args)
 
 function signin($request, $response, $args)
 {
-
+	$userid = "emma";
+	$email = "emma@emma.fr";
+	$issuedAt = time();
+	$expirationTime = $issuedAt + 60; // jwt valid for 60 seconds from the issued time
+	$payload = array(
+		'userid' => $userid,
+		'iat' => $issuedAt,
+		'exp' => $expirationTime
+	);
+	$token_jwt = JWT::encode($payload, JWT_SECRET, "HS256");
+	$response = $response->withHeader("Authorization", "Bearer {$token_jwt}")->withHeader("Content-Type", "application/json");
+	$data = array('name' => 'Emma', 'age' => 48, 'email' => $email);
+	return $response->withHeader("Content-Type", "application/json")->withJson($data);
 }
 
 function getProduits($request, $response, $args)
@@ -94,9 +121,7 @@ function getProduits($request, $response, $args)
 }
 
 function getProduit($request, $response, $args)
-{ 
-	
-}
+{ }
 
 // Start app
 $app->run();
