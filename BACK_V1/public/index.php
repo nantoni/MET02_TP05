@@ -35,7 +35,7 @@ $app->get('/api/produits', 'getProduits');
 $app->get('/api/produit/{id}', 'getProduit');
 
 // auth
-$app->get('/api/authen', authen);
+$app->get('/api/authen', 'authen');
 
 
 
@@ -47,7 +47,13 @@ function authen($request, $response, $args)
 
 function hello($resquest, $response, $args)
 {
-	return $response->write("{\"nom\":\"$args[name]\"}");
+	return $response->write("{\"nom\":\"$args[name]\"}")
+
+	// Required to allow CORS
+	->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+	->withHeader("Access-Control-Allow-Origin", "*")
+	->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+
 };
 
 function getClient($request, $response, $args)
