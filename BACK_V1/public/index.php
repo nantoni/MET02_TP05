@@ -7,20 +7,20 @@ $app = new \Slim\App;
 
 const JWT_SECRET = "BrigitteMacronIsASolidFiveOutOfSeven";
 
-// $jwt = new \Tuupola\Middleware\JwtAuthentication([
-// 	"path" => "/api",
-// 	"secure" => false,
-// 	"secret" => JWT_SECRET,
-// 	"passthrough" => ["/signin"],
-// 	"attribute" => "decoded_token_data",
-// 	"algorithm" => ["HS256"],
-// 	"error" => function ($response, $arguments) {
-// 		$data = array('ERREUR' => 'ERREUR', 'ERREUR' => 'AUTO');
-// 		return $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
-// 	}
-// ]);
+$jwt = new \Tuupola\Middleware\JwtAuthentication([
+	"path" => "/api",
+	"secure" => false,
+	"secret" => JWT_SECRET,
+	"passthrough" => ["/signin"],
+	"attribute" => "decoded_token_data",
+	"algorithm" => ["HS256"],
+	"error" => function ($response, $arguments) {
+		$data = array('ERREUR' => 'ERREUR', 'ERREUR' => 'AUTO');
+		return $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
+	}
+]);
 
-// $app->add($jwt);
+$app->add($jwt);
 
 // ROUTES
 $app->get('/hello/{name}', 'hello');
@@ -69,8 +69,17 @@ function getClient($request, $response, $args)
 
 function addClient($request, $response, $args)
 {
+	$body = $request->getParsedBody();
+
+	// echo var_dump($body);
+
+	// $data = array(
+	// 	'email' => $body['email']
+	//   );
+
 	
-	return $response->write('{"res":"ok"}')
+
+	return $response->withHeader("Content-Type", "application/json")->withJson($body)
 
 	->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
 	->withHeader("Access-Control-Allow-Origin", "*")
@@ -109,21 +118,33 @@ function signin($request, $response, $args)
 {
 	$userid = "emma";
 	$email = "emma@emma.fr";
-	$issuedAt = time();
-	$expirationTime = $issuedAt + 60; // jwt valid for 60 seconds from the issued time
-	$payload = array(
-		'userid' => $userid,
-		'iat' => $issuedAt,
-		'exp' => $expirationTime
-	);
-	$token_jwt = JWT::encode($payload, JWT_SECRET, "HS256");
-	$response = $response->withHeader("Authorization", "Bearer {$token_jwt}")->withHeader("Content-Type", "application/json");
-	$data = array('name' => 'Emma', 'age' => 48, 'email' => $email);
-	return $response->withHeader("Content-Type", "application/json")->withJson($data)
+	$password = "emma";
 
-	->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
-	->withHeader("Access-Control-Allow-Origin", "*")
-	->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+	$body = $request->getParsedBody();
+
+	if ($body['email'] == $email && $body['password'] == $password){
+		$issuedAt = time();
+		$expirationTime = $issuedAt + 60; // jwt valid for 60 seconds from the issued time
+		$payload = array(
+			'userid' => $userid,
+			'iat' => $issuedAt,
+			'exp' => $expirationTime
+		);
+		$token_jwt = JWT::encode($payload, JWT_SECRET, "HS256");
+		$response = $response->withHeader("Authorization", "Bearer {$token_jwt}")->withHeader("Content-Type", "application/json");
+		$data = array('email' => $email);
+		return $response->withHeader("Content-Type", "application/json")->withJson($data)
+	
+		->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+		->withHeader("Access-Control-Allow-Origin", "*")
+		->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+	}	
+	else {
+		return $response->withStatus(401)
+		->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+		->withHeader("Access-Control-Allow-Origin", "*")
+		->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+	}
 
 }
 
