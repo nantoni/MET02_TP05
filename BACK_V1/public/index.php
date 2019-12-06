@@ -7,22 +7,23 @@ $app = new \Slim\App;
 
 const JWT_SECRET = "BrigitteMacronIsASolidFiveOutOfSeven";
 
-$jwt = new \Tuupola\Middleware\JwtAuthentication([
-	"path" => "/api",
-	"secure" => false,
-	"secret" => JWT_SECRET,
-	"passthrough" => ["/signin"],
-	"attribute" => "decoded_token_data",
-	"algorithm" => ["HS256"],
-	"error" => function ($response, $arguments) {
-		$data = array('ERREUR' => 'ERREUR', 'ERREUR' => 'AUTO');
-		return $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
-	}
-]);
+// $jwt = new \Tuupola\Middleware\JwtAuthentication([
+// 	"path" => "/api",
+// 	"secure" => false,
+// 	"secret" => JWT_SECRET,
+// 	"passthrough" => ["/signin"],
+// 	"attribute" => "decoded_token_data",
+// 	"algorithm" => ["HS256"],
+// 	"error" => function ($response, $arguments) {
+// 		$data = array('ERREUR' => 'ERREUR', 'ERREUR' => 'AUTO');
+// 		return $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
+// 	}
+// ]);
 
-$app->add($jwt);
+// $app->add($jwt);
 
 // ROUTES
+$app->get('/hello/{name}', 'hello');
 // client 
 $app->get('/api/client/{id}', 'getClient');
 $app->post('/api/client', 'addClient');
@@ -69,6 +70,11 @@ function getClient($request, $response, $args)
 function addClient($request, $response, $args)
 {
 	
+	return $response->write('{"res":"ok"}')
+
+	->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+	->withHeader("Access-Control-Allow-Origin", "*")
+	->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
 }
 
 function addLivre($request, $response, $args)
@@ -113,7 +119,12 @@ function signin($request, $response, $args)
 	$token_jwt = JWT::encode($payload, JWT_SECRET, "HS256");
 	$response = $response->withHeader("Authorization", "Bearer {$token_jwt}")->withHeader("Content-Type", "application/json");
 	$data = array('name' => 'Emma', 'age' => 48, 'email' => $email);
-	return $response->withHeader("Content-Type", "application/json")->withJson($data);
+	return $response->withHeader("Content-Type", "application/json")->withJson($data)
+
+	->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+	->withHeader("Access-Control-Allow-Origin", "*")
+	->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+
 }
 
 function getProduits($request, $response, $args)
