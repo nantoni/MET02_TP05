@@ -87,6 +87,7 @@ function deleteClient($request, $response, $args)
 function signin($request, $response, $args)
 {
 	$userid = "emma";
+	$name = "emma";
 	$email = "emma@emma.fr";
 	$password = "emma";
 
@@ -103,7 +104,7 @@ function signin($request, $response, $args)
 		);
 		$token_jwt = JWT::encode($payload, JWT_SECRET, "HS256");
 		$response = $response->withHeader("Authorization", "Bearer {$token_jwt}")->withHeader("Content-Type", "application/json");
-		$data = array('userid' => $userid, 'email' => $email);
+		$data = array('first_name' => $name, 'email' => $email);
 		return $response->withHeader("Content-Type", "application/json")->withJson($data)
 	
 		->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
