@@ -23,7 +23,6 @@ $jwt = new \Tuupola\Middleware\JwtAuthentication([
 $app->add($jwt);
 
 // ROUTES
-$app->get('/hello/{name}', 'hello');
 // client 
 $app->get('/api/client/{id}', 'getClient');
 $app->post('/api/client', 'addClient');
@@ -35,27 +34,6 @@ $app->post('/signin', 'signin');
 $app->get('/api/produits', 'getProduits');
 $app->get('/api/produit/{id}', 'getProduit');
 
-// auth
-$app->get('/api/authen', 'authen');
-
-
-
-function authen($request, $response, $args)
-{
-	$token = $request->getAttribute("decoded_token_data");
-	return $response->withHeader("Content-Type", "application/json")->withJson($token);
-}
-
-function hello($resquest, $response, $args)
-{
-	return $response->write("{\"nom\":\"$args[name]\"}")
-
-	// Required to allow CORS
-	->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
-	->withHeader("Access-Control-Allow-Origin", "*")
-	->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-
-};
 
 function getClient($request, $response, $args)
 {
@@ -70,14 +48,6 @@ function getClient($request, $response, $args)
 function addClient($request, $response, $args)
 {
 	$body = $request->getParsedBody();
-
-	// echo var_dump($body);
-
-	// $data = array(
-	// 	'email' => $body['email']
-	//   );
-
-	
 
 	return $response->withHeader("Content-Type", "application/json")->withJson($body)
 
@@ -122,6 +92,7 @@ function signin($request, $response, $args)
 
 	$body = $request->getParsedBody();
 
+	// If the parameters sent match the test user return JWT 
 	if ($body['email'] == $email && $body['password'] == $password){
 		$issuedAt = time();
 		$expirationTime = $issuedAt + 60; // jwt valid for 60 seconds from the issued time
@@ -132,13 +103,14 @@ function signin($request, $response, $args)
 		);
 		$token_jwt = JWT::encode($payload, JWT_SECRET, "HS256");
 		$response = $response->withHeader("Authorization", "Bearer {$token_jwt}")->withHeader("Content-Type", "application/json");
-		$data = array('email' => $email);
+		$data = array('userid' => $userid, 'email' => $email);
 		return $response->withHeader("Content-Type", "application/json")->withJson($data)
 	
 		->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
 		->withHeader("Access-Control-Allow-Origin", "*")
 		->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
 	}	
+	// Otherwise return error 401
 	else {
 		return $response->withStatus(401)
 		->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
@@ -150,12 +122,8 @@ function signin($request, $response, $args)
 
 function getProduits($request, $response, $args)
 {
-
-	// stackoverflow 
-	// $path = storage_path("testing/json/test-data.json");
+	// $path = storage_path("test-data.json");
 	// $json = file_get_contents($path); 
-	// stackoverflow 
-
 }
 
 function getProduit($request, $response, $args)
